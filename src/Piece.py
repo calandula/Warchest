@@ -29,4 +29,10 @@ class Piece:
             return False
         return True
     
+    def get_coordinates(self, position):
+        column, row = position
+        x = ord(column) - 97
+        y = int(row) - 1
+        return x, y
+    
     
