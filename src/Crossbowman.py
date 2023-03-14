@@ -2,7 +2,8 @@ import Piece
 
 class Crossbowman(Piece):
     def __init__(self, color) -> None:
-        super().__init__("crossbowman", color)
+        super().__init__("Crossbowman", color)
+        self.letter = "Cr"
 
     def move(self, start, end):
         if self.is_orthogonal(start, end):

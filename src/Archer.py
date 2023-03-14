@@ -2,7 +2,8 @@ import Piece
 
 class Archer(Piece):
     def __init__(self, color) -> None:
-        super().__init__("archer", color)
+        super().__init__("Archer", color)
+        self.letter = "A"
 
     def move(self, start, end):
         if self.is_orthogonal(start, end):

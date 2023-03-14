@@ -2,7 +2,8 @@ import Piece
 
 class Berserker(Piece):
     def __init__(self, color) -> None:
-        super().__init__("berserker", color)
+        super().__init__("Berserker", color)
+        self.letter = "B"
 
     def move(self, start, end):
         if self.is_orthogonal(start, end):

@@ -1,7 +1,7 @@
 class Piece:
-    def __init__(self, type, color) -> None:
+    def __init__(self, type, clan) -> None:
         self.type = type
-        self.color = color
+        self.clan = clan
         self.captured = False
         
     def get_move(self):

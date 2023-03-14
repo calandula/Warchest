@@ -2,7 +2,8 @@ import Piece
 
 class Cavalry(Piece):
     def __init__(self, color) -> None:
-        super().__init__("cavalry", color)
+        super().__init__("Cavalry", color)
+        self.letter = "Ca"
 
     def move(self, start, end):
         if self.is_orthogonal(start, end):
