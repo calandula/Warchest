@@ -1,17 +1,19 @@
 import random
-import PieceFactory
+from PieceFactory import PieceFactory
+from Board import Board
 
 class Player:
-    def __init__(self, clan, emblem) -> None:
+    def __init__(self, name, clan, emblem) -> None:
         self.clan = clan
         self.letter = self.clan[0]
         self.emblem = emblem
+        self.name = name
         self.bag = []
         self.hand = []
         self.discard_pile = []
         self.recruitment = {}
         self.control_tokens = 4
-        self.has_initiative = False
+        self.initiative = True
 
     def init_pieces(self, types, typeCount):
         self.bag.append(PieceFactory().get_piece("Royal", self.clan))
@@ -19,14 +21,16 @@ class Player:
             self.bag.append(PieceFactory().get_piece(type, self.clan))
             self.bag.append(PieceFactory().get_piece(type, self.clan))
             typeCount[type] -= 2
-        self.recruitment = {key:value for (key, value) in typeCount if key in types}
+        random.shuffle(self.bag)
+        self.hand = self.bag[0:3]
+        self.recruitment = {key:value for (key, value) in typeCount.items() if key in types}
 
     def draw_units(self):
-        if self.bag < 3:
+        if len(self.bag) < 3:
             self.bag = [*self.bag, *self.discard_pile]
             self.discard_pile = []
-        self.hand = random.shuffle(self.bag)[0:3]
-        return self.hand
+        random.shuffle(self.bag)
+        self.hand = self.bag[0:3]
 
     def discard(self, typeToDiscard):
         self.discard_pile.append(PieceFactory().get_piece(typeToDiscard, self.clan))
@@ -39,8 +43,17 @@ class Player:
     
     def place_unit(self, board):
         while True:
-            type = input("Piece to place from hand: ")
+            if self.control_tokens == 5:
+                print("You cannot place a unit since you do not have any control zones")
+                break
+
+            type = input("Piece to place from hand or change move with 'change': ")
+
+            if type == "change":
+                break
+
             if not self.is_in_hand(type) or type == "Royal":
+                print("Oops! You do not have this type of piece in your hand... remember the Royal cannot battle!")
                 continue
             positionToPlace = input("Position to place (ex. b8): ")
             if not self.place(positionToPlace, type, board):
@@ -48,10 +61,10 @@ class Player:
             self.remove_from_hand(type)
             break
 
-    def place(self, positionToPlace, typeToDiscard, board):
+    def place(self, positionToPlace, typeToDiscard, board: Board):
         piece = PieceFactory().get_piece(typeToDiscard, self.clan)
         if (not board.is_valid_position(positionToPlace) or 
-            not board.is_orthogonal_to_control_zone(positionToPlace, self.clan)):
+            not board.is_orthogonal_to_control_zone(positionToPlace, self.letter)):
             print("Oops! Invalid position, it must be orthogonal to a control zone already taken")
             return False
         board.put_piece(positionToPlace, piece)
@@ -62,7 +75,10 @@ class Player:
 
     def move_unit(self, board):
         while True:
-            startPosition = input("From position (ex. a8): ")
+            startPosition = input("enter a position (ex. a3) or change move with 'change': ")
+
+            if startPosition == "change":
+                break
 
             if (not board.is_valid_position(startPosition) or
                 not board.is_my_piece(startPosition, self.clan)):
@@ -75,7 +91,7 @@ class Player:
                 print("Oops! You input a bad piece type or is Royal piece")
                 continue
 
-            endPosition = input("To position (ex. a8): ") 
+            endPosition = input("To position (ex. a3): ") 
 
             if (not board.is_valid_position(endPosition) or
                 not board.is_empty(endPosition) or
@@ -91,7 +107,11 @@ class Player:
 
     def recruit_unit(self):
         while True:
-            type = input("Piece to discard from hand to recruit the same kind: ")
+            type = input("Piece to discard from hand to recruit the same kind or change move with 'change': ")
+
+            if type == "change":
+                break
+
             if not self.is_in_hand(type):
                 print("Oops! This unit does not exist or is not in your hand, choose again")
                 continue
@@ -108,7 +128,7 @@ class Player:
 
     def recruit(self, typeToDiscard, typeToRecruit):
         self.remove_from_hand(typeToDiscard)
-        self.hand.append(PieceFactory().get_piece(typeToDiscard, self.clan))
+        self.bag.append(PieceFactory().get_piece(typeToDiscard, self.clan))
         self.recruitment[typeToRecruit] -= 1
 
     def can_recruit(self, type):
@@ -121,7 +141,11 @@ class Player:
 
     def attack_unit(self, board):
         while True:
-            startPosition = input("Attack from position (ex. a8): ")
+            startPosition = input("Attack from position (ex. a3) or change move with 'change': ")
+
+            if startPosition == "change":
+                break
+            
             if (not board.is_valid_position(startPosition) and
                 not board.is_my_piece(startPosition, self.clan)):
                 print("Oops! You input a bad position, the position was empty or you cannot move that piece")
@@ -130,7 +154,7 @@ class Player:
             if not self.is_in_hand(typeToDiscard) and typeToDiscard == "Royal" and board.is_piece_from_same_type(self, startPosition, typeToDiscard):
                 print("Oops! You input a bad piece type or is Royal piece or the type does not concur")
                 continue
-            endPosition = input("To position (ex. a8): ") 
+            endPosition = input("To position (ex. a3): ") 
             if (not board.is_valid_position(endPosition) and
                 not board.is_empty(endPosition) and
                 not board.can_attack(startPosition, endPosition)):
@@ -144,30 +168,41 @@ class Player:
 
     def take_initiative(self):
         while True:
-            typeToDiscard = input("Piece to discard from hand: ")
-            if not self.is_in_hand(typeToDiscard):
-                print("Oops! This unit does not exist or is not in your hand, choose again")
-                continue
-            self.initiative(typeToDiscard)
+            print("You will use your Royal unit for taking the initiative")
+
+            if not self.is_in_hand("Royal"):
+                print("Oops! You can't take the initiative since you do not have a Royal unit")
+                break
+
+            self.remove_from_hand("Royal")
+            self.initiative = True
             break
 
+    def has_initiative(self):
+        return self.initiative
+    
+    def get_control_tokens(self):
+        return self.control_tokens == 0
+    
     def initiative(self, typeToDiscard):
-        self.remove_piece_from_hand(typeToDiscard)
+        self.remove_from_hand(typeToDiscard)
         self.initiative = True
 
     def decide_actions(self, board):
-        while len(self.hand) > 0:
+        self.draw_units()
+        self.print_status()
+        while len(self.hand) > 0 and not self.has_lost():
             while True:
                 action = input("Make an action (move/recruit/place/attack/control/initiative/forfeit): ")
                 action = action.lower()
                 if action == "move":
-                    self.move_unit()
+                    self.move_unit(board)
                 elif action == "recruit":
                     self.recruit_unit()
                 elif action == "place":
                     self.place_unit(board)
                 elif action == "attack":
-                    self.attack_unit()
+                    self.attack_unit(board)
                 elif action == "control":
                     self.control_zone()
                 elif action == "initiative":
@@ -178,14 +213,18 @@ class Player:
                     print("Oops! This action does not exist!")
                     continue
                 break
-            print(f"Hand: {self.hand.join(', ')}")
+            self.print_hand()
         
+    def has_lost(self):
+        return 
             
-
     def print_status(self):
         print(f"========= {self.clan} ({self.emblem}) =========")
-        print(f"Hand: {self.draw_units.join(', ')}")
-        print(f"Recruitment pieces: {[f'{k} = {v}' for (k, v) in self.recruitment.items()].join(', ')}")
+        print(f"Hand: {str(self.hand)}")
+        print(f"Recruitment pieces: {', '.join([f'{k} = {v}' for (k, v) in self.recruitment.items()])}")
         print("Discard pile:")
-        print(f"{self.discard_pile.join(', ')}")
+        print(f"{str(self.discard_pile)}")
         print(f"Control tokens: {self.control_tokens}")
+
+    def print_hand(self):
+        print(f"Hand: {str(self.hand)}")

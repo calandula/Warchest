@@ -16,9 +16,24 @@ class RecordManager:
         with open(self.file_path, "w") as f:
             json.dump(self.records, f, indent=4)
 
-    def add_record(self, name, points):
+    def add_record(self, name):
         date = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        new_record = {"name": name, "points": points, "date": date}
+
+        found_record = False
+        record = None
+        index = None
+        for idx, obj in enumerate(self.records):
+            if obj["name"] == name:
+                found_record = True
+                record = obj.copy()
+                index = idx
+
+        if found_record:
+            self.records.pop(index)
+            new_record = {"name": name, "points": record["points"] + 1, "date": date}
+        else:
+            new_record = {"name": name, "points": 0, "date": date}
+
         self.records.append(new_record)
         self.records = sorted(self.records, key=lambda x: (-x["points"], x["date"]))
         self.save()

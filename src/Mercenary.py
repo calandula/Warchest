@@ -1,4 +1,4 @@
-import Piece
+from Piece import Piece
 
 class Mercenary(Piece):
     def __init__(self, color) -> None:

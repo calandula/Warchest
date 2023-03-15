@@ -4,6 +4,7 @@ class Board:
     def __init__(self) -> None:
         self.nrows = 5
         self.ncols = 5
+        self.control_zones = [(1, 0), (2, 1), (2, 3), (3, 4)]
         self.board = [
             ['.', '.', 'C', '.', '.'],
             ['@', '.', '.', '.', '.'],
@@ -11,9 +12,18 @@ class Board:
             ['.', '.', '.', '.', '@'],
             ['.', '.', 'W', '.', '.']
         ]
+        self.winner = None
 
     def print_board(self) -> str:
-        print(self.board)
+        rows = "abcde"
+        print("  ", end="")
+        print(''.join([f"  {i + 1}" for i in range(self.ncols)]) ) 
+        print('    --------------')
+        for i in range(self.nrows):
+            print(f"{rows[i]}|", end="")
+            for j in range(self.ncols):
+                print(f"  {str(self.board[i][j])}", end="")
+            print("")
 
     def put_piece(self, position, piece):
         x, y = self.get_coordinates(position)
@@ -29,14 +39,14 @@ class Board:
     def remove_piece(self, end):
         x1, y1 = self.get_coordinates(end)
         self.board[x1][y1] = '.'
-        
+
     def is_my_piece(self, position, clan):
         x, y = self.get_coordinates(position)
-        return type(self.board[x][y] != "string") and self.board[x][y].clan == clan
+        return type(self.board[x][y]) is not str and self.board[x][y].clan == clan
 
     def is_piece_from_same_type(self, position, type):
         x, y = self.get_coordinates(position)
-        return type(self.board[x][y]) != "string" and self.board[x][y].type == type
+        return type(self.board[x][y]) is not str and self.board[x][y].type == type
 
     def is_empty(self, position):
         x, y = self.get_coordinates(position)
@@ -44,11 +54,11 @@ class Board:
 
     def can_move(self, start, end):
         x, y = self.get_coordinates(start)
-        return self.board[x][y].move(start, end)
+        return self.board[x][y].can_move(start, end)
     
     def can_attack(self, start, end):
         x, y = self.get_coordinates(start)
-        return self.board[x][y].attack(start, end)
+        return self.board[x][y].can_attack(start, end)
 
     def get_coordinates(self, position):
         column, row = position
@@ -75,3 +85,10 @@ class Board:
             (x < self.nrows - 1  and self.board[x + 1][y] == clan) or
             (y < self.ncols - 1 and self.board[x][y + 1] == clan))
             )
+    
+    def has_ended(self):
+        return not self.winner == None
+    
+
+b = Board()
+b.print_board()
