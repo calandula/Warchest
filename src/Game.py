@@ -8,8 +8,8 @@ class Game:
         self.players = [Player("Wolf", "v"), Player("Crow", "^")]
         self.bag = {
             "Archer": 4,
-            "Berserker": 4,
-            "Cavalry": 4,
+            "Knight": 5,
+            "Mercenary": 5,
             "Crossbowman": 5,
         }
         self.types = [key for key in self.bag.keys()]

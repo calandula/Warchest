@@ -1,14 +1,14 @@
-import Archer, Berserker, Cavalry, Crossbowman, Royal 
+import Archer, Knight, Mercenary, Crossbowman, Royal 
 
 class PieceFactory:
-    def __init__(self, type, color):
+    def get_piece(self, type, color):
         if type == 'Archer':
             return Archer(color)
-        elif type == 'Berserker':
-            return Berserker(color)
+        elif type == 'Knight':
+            return Knight(color)
         elif type == 'Crossbowman':
             return Crossbowman(color)
-        elif type == 'Cavalry':
-            return Cavalry(color)
+        elif type == 'Mercenary':
+            return Mercenary(color)
         else:
             return Royal(color)

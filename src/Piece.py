@@ -13,10 +13,10 @@ class Piece:
                     continue
             return start, end
         
-    def move(self, start, end):
+    def can_move(self, start, end):
         pass
 
-    def attack(self, start, end):
+    def can_attack(self, start, end):
         pass
 
     def is_valid_position(self, position):
@@ -34,5 +34,40 @@ class Piece:
         x = ord(column) - 97
         y = int(row) - 1
         return x, y
+    
+    def is_adjacent(self, start, end):
+        x1, y1 = self.get_coordinates(start)
+        x2, y2 = self.get_coordinates(end)
+        if abs(x1 - x2) <= 1 and abs(y1 - y2) <= 1:
+            return True
+        else:
+            return False
+        
+    def separated_by_two_spaces(self, start, end):
+        x1, y1 = self.get_coordinates(start)
+        x2, y2 = self.get_coordinates(end)
+        if abs(x1 - x2) + abs(y1 - y2) == 2:
+            return True
+        else:
+            return False
+        
+    def separated_by_two_spaces_straight(self, start, end):
+        x1, y1 = self.get_coordinates(start)
+        x2, y2 = self.get_coordinates(end)
+        if (abs(x1 - x2) == 2 and abs(y1 - y2) == 0) or (abs(x1 - x2) == 0 and abs(y1 - y2) == 2):
+            return True
+        else:
+            return False
+
+    def is_orthogonal(self, start, end):
+        x1, y1 = self.get_coordinates(start)
+        x2, y2 = self.get_coordinates(end)
+        if x1 == x2 or y1 == y2:
+            return True
+        else:
+            return False
+    
+    def __str__(self) -> str:
+        return self.type
     
     
