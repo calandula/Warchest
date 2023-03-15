@@ -13,6 +13,7 @@ class Player:
         self.discard_pile = []
         self.recruitment = {}
         self.control_tokens = 4
+        self.control_zones = []
         self.initiative = True
 
     def init_pieces(self, types, typeCount):
@@ -24,6 +25,9 @@ class Player:
         random.shuffle(self.bag)
         self.hand = self.bag[0:3]
         self.recruitment = {key:value for (key, value) in typeCount.items() if key in types}
+
+    def has_units_to_recruit(self):
+        return min([value for value in self.recruitment.values()]) > 0
 
     def draw_units(self):
         if len(self.bag) < 3:
@@ -41,7 +45,7 @@ class Player:
                 self.hand.remove(piece)
                 break
     
-    def place_unit(self, board):
+    def place_unit(self, board: Board):
         while True:
             if self.control_tokens == 5:
                 print("You cannot place a unit since you do not have any control zones")
@@ -70,10 +74,35 @@ class Player:
         board.put_piece(positionToPlace, piece)
         return True
 
-    def control_zone(self):
-        ...
+    def control_zone(self, board: Board):
+        while True:
 
-    def move_unit(self, board):
+            startPosition = input("please, select the position of the unit you want it to control the zone or input 'change': ")
+
+            if startPosition == "change":
+                break
+
+            if (not board.is_conquerable(startPosition, self.clan) or
+                not board.is_my_piece(startPosition, self.clan)):
+                print("Oops! You input a bad position, the position was empty or you cannot move that piece")
+                continue
+
+            type = input("Select a piece to discard for controlling: ")
+
+            if not self.is_in_hand(type):
+                print("Oops! You input a bad piece")
+                continue
+
+            self.remove_from_hand(type)
+            self.discard(type)
+            board.put_token(startPosition, self.letter)
+            self.control_tokens -= 1
+            if self.control_tokens == 0:
+                board.set_winner(self.name)
+            
+            break
+
+    def move_unit(self, board: Board):
         while True:
             startPosition = input("enter a position (ex. a3) or change move with 'change': ")
 
@@ -188,12 +217,12 @@ class Player:
         self.remove_from_hand(typeToDiscard)
         self.initiative = True
 
-    def decide_actions(self, board):
+    def decide_actions(self, board: Board):
         self.draw_units()
         self.print_status()
-        while len(self.hand) > 0 and not self.has_lost():
+        while len(self.hand) > 0 and not self.has_lost() and board.get_winner() is None:
             while True:
-                action = input("Make an action (move/recruit/place/attack/control/initiative/forfeit): ")
+                action = input("Make an action (move/recruit/place/attack/control/initiative): ")
                 action = action.lower()
                 if action == "move":
                     self.move_unit(board)
@@ -204,19 +233,22 @@ class Player:
                 elif action == "attack":
                     self.attack_unit(board)
                 elif action == "control":
-                    self.control_zone()
+                    self.control_zone(board)
                 elif action == "initiative":
                     self.take_initiative()
-                elif action == "forfeit":
-                    self.forfeit()
                 else:
                     print("Oops! This action does not exist!")
                     continue
+
                 break
             self.print_hand()
         
-    def has_lost(self):
-        return 
+    def has_lost(self, board: Board):
+        return (len(self.bag) == 0 and
+                len(self.hand) == 0 and
+                not self.has_units_to_recruit() and
+                not board.has_pieces_in_board(self.clan))
+    
             
     def print_status(self):
         print(f"========= {self.clan} ({self.emblem}) =========")

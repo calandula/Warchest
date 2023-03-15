@@ -14,10 +14,10 @@ class Piece:
             return start, end
         
     def can_move(self, start, end):
-        pass
+        raise NotImplementedError
 
     def can_attack(self, start, end):
-        pass
+        raise NotImplementedError
 
     def is_valid_position(self, position):
         columns = "abcde"
@@ -68,7 +68,7 @@ class Piece:
             return False
     
     def __str__(self) -> str:
-        return self.letter
+        return self.letter + self.clan[0].lower()
 
     def __repr__(self) -> str:
         return self.type

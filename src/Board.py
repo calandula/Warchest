@@ -1,10 +1,17 @@
-import PieceFactory
+from Piece import Piece
 
 class Board:
     def __init__(self) -> None:
         self.nrows = 5
         self.ncols = 5
-        self.control_zones = [(1, 0), (2, 1), (2, 3), (3, 4)]
+        self.zones = {
+            (0, 2): 'Crow',
+            (1, 0): '@',
+            (2, 1): '@',
+            (2, 3): '@',
+            (3, 4): '@',
+            (4, 2): 'Wolf'
+        }
         self.board = [
             ['.', '.', 'C', '.', '.'],
             ['@', '.', '.', '.', '.'],
@@ -22,12 +29,18 @@ class Board:
         for i in range(self.nrows):
             print(f"{rows[i]}|", end="")
             for j in range(self.ncols):
-                print(f"  {str(self.board[i][j])}", end="")
+                elem = str(self.board[i][j])
+                print(f"  {elem}", end="")
             print("")
 
     def put_piece(self, position, piece):
         x, y = self.get_coordinates(position)
         self.board[x][y] = piece
+
+    def put_token(self, position, clan):
+        x, y = self.get_coordinates(position)
+        self.zones[(x, y)] = clan
+        self.board[x][y] = clan
 
     def move_piece(self, start, end):
         x1, y1 = self.get_coordinates(start)
@@ -43,6 +56,13 @@ class Board:
     def is_my_piece(self, position, clan):
         x, y = self.get_coordinates(position)
         return type(self.board[x][y]) is not str and self.board[x][y].clan == clan
+    
+    def has_pieces_in_board(self, clan):
+        for i in range(self.nrows):
+            for j in range(self.ncols):
+                if isinstance(self.board[i][j], Piece) and self.board[i][j].clan == clan:
+                    return True
+        return False
 
     def is_piece_from_same_type(self, position, type):
         x, y = self.get_coordinates(position)
@@ -51,6 +71,10 @@ class Board:
     def is_empty(self, position):
         x, y = self.get_coordinates(position)
         return self.board[x][y] == "."
+    
+    def is_conquerable(self, position, clan):
+        x, y = self.get_coordinates(position)
+        return (x, y) in self.zones and self.zones[(x, y)] != clan
 
     def can_move(self, start, end):
         x, y = self.get_coordinates(start)
@@ -86,9 +110,11 @@ class Board:
             (y < self.ncols - 1 and self.board[x][y + 1] == clan))
             )
     
+    def get_winner(self):
+        return self.winner
+    
+    def set_winner(self, winner):
+        self.winner = winner
+    
     def has_ended(self):
         return not self.winner == None
-    
-
-b = Board()
-b.print_board()
