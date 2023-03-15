@@ -36,6 +36,8 @@ class Game:
                     self.turn()
                     if not self.players[self.turn_player_index].has_initiative():
                         self.turn_player_index = (self.turn_player_index + 1) % 2
+                    else:
+                        self.players[self.turn_player_index].deactivate_initiative()
                 RecordManager("db/scoreboard.json").add_record(self.board.get_winner())
                 break
             elif startGame.lower() == 'n':

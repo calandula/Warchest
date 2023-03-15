@@ -14,7 +14,7 @@ class Player:
         self.recruitment = {}
         self.control_tokens = 4
         self.control_zones = []
-        self.initiative = True
+        self.initiative = False
 
     def init_pieces(self, types, typeCount):
         self.bag.append(PieceFactory().get_piece("Royal", self.clan))
@@ -151,6 +151,7 @@ class Player:
                         print("Oops! You cannot recruit this unit, try again")
                         continue
                     self.recruit(type, typeToRecruit)
+                    break
             else:
                 self.recruit(type, type)
             break
@@ -161,7 +162,7 @@ class Player:
         self.recruitment[typeToRecruit] -= 1
 
     def can_recruit(self, type):
-        if self.recruitment[type] > 0:
+        if type in self.recruitment and self.recruitment[type] > 0:
             return True
         return False
     
@@ -207,6 +208,9 @@ class Player:
             self.initiative = True
             break
 
+    def deactivate_initiative(self):
+        self.initiative = False
+
     def has_initiative(self):
         return self.initiative
     
@@ -220,7 +224,7 @@ class Player:
     def decide_actions(self, board: Board):
         self.draw_units()
         self.print_status()
-        while len(self.hand) > 0 and not self.has_lost() and board.get_winner() is None:
+        while len(self.hand) > 0 and not self.has_lost(board) and board.get_winner() is None:
             while True:
                 action = input("Make an action (move/recruit/place/attack/control/initiative): ")
                 action = action.lower()
